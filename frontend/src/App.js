@@ -67,7 +67,7 @@ export default function App() {
     } else if (newWaypoints.length === 1) {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
-      setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);
+      setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);setTimeout(() => fetchRoadDistance(), 300);
     }
   }, []);
 
