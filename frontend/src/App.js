@@ -80,22 +80,17 @@ export default function App() {
     } else if (newWaypoints.length === 1) {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
-      setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);setTimeout(async () => {
-  if (newWaypoints.length < 2) return;
-  try {
-    const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join('|');
-    const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=false`;
-    const res = await fetch(url);
-    const data = await res.json();
+  setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);
+  const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join('|');
+  const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=false`;
+  fetch(url).then(r => r.json()).then(data => {
     if (data.routes && data.routes[0]) {
       const meters = data.routes[0].distance;
       setRoadDistance(meters / 1000);
       setStatus(`道路距離: ${(meters / 1000).toFixed(2)}km`);
-      recordActivity();
     }
-  } catch (e) {}
-}, 300);
-    }
+  }).catch(() => {});
+}
   }, [recordActivity]);
 
   const handleMapCenterChange = useCallback((center) => {
