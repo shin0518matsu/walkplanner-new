@@ -148,12 +148,6 @@ export default function Sidebar({
           </div>
         </div>
 
-        {waypoints.length >= 2 && !roadDistance && (
-          <button className="btn btn-secondary" onClick={handleRoadDistance} disabled={loadingRoad} style={{ marginTop: 10 }}>
-            {loadingRoad ? '計算中...' : '🗺 実際の道路距離を計算'}
-          </button>
-        )}
-
         {distance > 0.1 && (
           <button className="btn btn-secondary" onClick={onFetchAnalysis} style={{ marginTop: 8 }}>
             🤖 AIにルートを分析してもらう
