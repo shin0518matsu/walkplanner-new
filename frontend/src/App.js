@@ -81,7 +81,7 @@ export default function App() {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
   setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);
-  const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join('|');
+  const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join('；');
   const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=false`;
   fetch(url).then(r => r.json()).then(data => {
     if (data.routes && data.routes[0]) {
