@@ -96,7 +96,7 @@ export default function App() {
   } catch (e) {}
 }, 300);
     }
-  }, []);
+  }, [recordActivity]);
 
   const handleMapCenterChange = useCallback((center) => {
     setMapCenter(center);
