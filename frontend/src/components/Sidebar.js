@@ -16,18 +16,36 @@ const DIFFICULTY_CONFIG = {
   hard:   { label: '上級', color: '#D85A30' },
 };
 
+const CONDITION_OPTIONS = [
+  { id: 'few_signals', label: '🚦 信号が少ない' },
+  { id: 'flat', label: '⛰ 高低差が少ない' },
+  { id: 'green', label: '🌿 緑が多い' },
+  { id: 'quiet', label: '🤫 人通りが少ない' },
+  { id: 'short', label: '📏 短め（〜3km）' },
+  { id: 'medium', label: '📏 普通（3〜7km）' },
+  { id: 'long', label: '📏 長め（7km〜）' },
+];
+
 export default function Sidebar({
-  mode, setMode, waypoints, distance, suggestions,
-  loadingSuggestions, routeAnalysis, onFetchSuggestions,
-  onFetchAnalysis, onClear, apiUrl,
+  mode, setMode, waypoints, distance, roadDistance, speed, calPerKm,
+  suggestions, loadingSuggestions, routeAnalysis, conditions, setConditions,
+  activityMode, onFetchSuggestions, onFetchAnalysis, onFetchRoadDistance,
+  onClear, apiUrl,
 }) {
   const [startText, setStartText] = useState('');
   const [endText, setEndText] = useState('');
   const [geocoding, setGeocoding] = useState(false);
   const [geoError, setGeoError] = useState('');
+  const [loadingRoad, setLoadingRoad] = useState(false);
 
-  const time = distance > 0 ? Math.round(distance / 4 * 60) : 0;
-  const calories = distance > 0 ? Math.round(distance * 60) : 0;
+  const time = distance > 0 ? Math.round(distance / speed * 60) : 0;
+  const calories = distance > 0 ? Math.round(distance * calPerKm) : 0;
+
+  function toggleCondition(id) {
+    setConditions(prev =>
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  }
 
   async function geocodePlace(name) {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name)}&format=json&limit=1&accept-language=ja`;
@@ -58,6 +76,12 @@ export default function Sidebar({
     }
   }
 
+  async function handleRoadDistance() {
+    setLoadingRoad(true);
+    await onFetchRoadDistance();
+    setLoadingRoad(false);
+  }
+
   function handleClear() {
     onClear();
     if (window.__walkplanner_clear) window.__walkplanner_clear();
@@ -68,49 +92,27 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar">
-
-      {/* モード切替 */}
       <div className="sidebar-section">
         <div className="section-label">入力モード</div>
         <div className="mode-tabs">
-          <button
-            className={`mode-tab ${mode === 'click' ? 'active' : ''}`}
-            onClick={() => setMode('click')}
-          >地図クリック</button>
-          <button
-            className={`mode-tab ${mode === 'text' ? 'active' : ''}`}
-            onClick={() => setMode('text')}
-          >テキスト入力</button>
+          <button className={`mode-tab ${mode === 'click' ? 'active' : ''}`} onClick={() => setMode('click')}>地図クリック</button>
+          <button className={`mode-tab ${mode === 'text' ? 'active' : ''}`} onClick={() => setMode('text')}>テキスト入力</button>
         </div>
 
         {mode === 'click' ? (
           <div className="click-hint">
             <p>地図上をクリックしてポイントを追加</p>
-            {waypoints.length > 0 && (
-              <div className="wp-count">{waypoints.length}地点設定済み</div>
-            )}
+            {waypoints.length > 0 && <div className="wp-count">{waypoints.length}地点設定済み</div>}
           </div>
         ) : (
           <div className="text-inputs">
             <div className="input-group">
               <label><span className="dot dot-start" />出発地</label>
-              <input
-                type="text"
-                value={startText}
-                onChange={e => setStartText(e.target.value)}
-                placeholder="例：甲府駅"
-                onKeyDown={e => e.key === 'Enter' && handleGeocode()}
-              />
+              <input type="text" value={startText} onChange={e => setStartText(e.target.value)} placeholder="例：甲府駅" onKeyDown={e => e.key === 'Enter' && handleGeocode()} />
             </div>
             <div className="input-group">
               <label><span className="dot dot-end" />目的地</label>
-              <input
-                type="text"
-                value={endText}
-                onChange={e => setEndText(e.target.value)}
-                placeholder="例：武田神社"
-                onKeyDown={e => e.key === 'Enter' && handleGeocode()}
-              />
+              <input type="text" value={endText} onChange={e => setEndText(e.target.value)} placeholder="例：武田神社" onKeyDown={e => e.key === 'Enter' && handleGeocode()} />
             </div>
             {geoError && <p className="geo-error">{geoError}</p>}
             <button className="btn btn-primary" onClick={handleGeocode} disabled={geocoding}>
@@ -121,19 +123,18 @@ export default function Sidebar({
         <button className="btn btn-clear" onClick={handleClear}>🗑 クリア</button>
       </div>
 
-      {/* ルート情報 */}
       <div className="sidebar-section">
         <div className="section-label">ルート情報</div>
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-label">合計距離</div>
+            <div className="stat-label">{roadDistance ? '道路距離' : '直線距離'}</div>
             <div className="stat-value">{distance.toFixed(2)}</div>
             <div className="stat-unit">km</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">目安時間</div>
             <div className="stat-value">{time}</div>
-            <div className="stat-unit">分</div>
+            <div className="stat-unit">分（時速{speed}km）</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">消費カロリー</div>
@@ -147,8 +148,14 @@ export default function Sidebar({
           </div>
         </div>
 
+        {waypoints.length >= 2 && !roadDistance && (
+          <button className="btn btn-secondary" onClick={handleRoadDistance} disabled={loadingRoad} style={{ marginTop: 10 }}>
+            {loadingRoad ? '計算中...' : '🗺 実際の道路距離を計算'}
+          </button>
+        )}
+
         {distance > 0.1 && (
-          <button className="btn btn-secondary" onClick={onFetchAnalysis} style={{ marginTop: 10 }}>
+          <button className="btn btn-secondary" onClick={onFetchAnalysis} style={{ marginTop: 8 }}>
             🤖 AIにルートを分析してもらう
           </button>
         )}
@@ -163,7 +170,21 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* AIコース提案 */}
+      <div className="sidebar-section">
+        <div className="section-label">コース条件</div>
+        <div className="conditions-grid">
+          {CONDITION_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              className={`condition-btn ${conditions.includes(opt.id) ? 'active' : ''}`}
+              onClick={() => toggleCondition(opt.id)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="sidebar-section sidebar-section--flex">
         <div className="section-label">AIコース提案</div>
         <button className="btn btn-ai" onClick={onFetchSuggestions} disabled={loadingSuggestions}>
@@ -171,38 +192,29 @@ export default function Sidebar({
         </button>
 
         {loadingSuggestions && (
-          <div className="ai-loading">
-            <div className="spinner" />
-            <span>AIがあなたのエリアを分析中...</span>
-          </div>
+          <div className="ai-loading"><div className="spinner" /><span>AIがあなたのエリアを分析中...</span></div>
         )}
 
         <div className="suggestions-list">
           {suggestions.map((course, i) => {
             const diff = DIFFICULTY_CONFIG[course.difficulty] || DIFFICULTY_CONFIG.easy;
             return (
-              <div key={i} className="suggestion-card" onClick={() => {}}>
+              <div key={i} className="suggestion-card">
                 <div className="suggestion-header">
                   <span className="suggestion-title">{course.title}</span>
                   <span className="difficulty-badge" style={{ color: diff.color }}>{diff.label}</span>
                 </div>
-                <div className="suggestion-meta">
-                  {course.distance} · {course.time}
-                </div>
+                <div className="suggestion-meta">{course.distance} · {course.time}</div>
                 <p className="suggestion-desc">{course.description}</p>
                 <div className="suggestion-tags">
                   {(course.tagTypes || []).map((t, j) => {
                     const cfg = TAG_CONFIG[t];
-                    return cfg ? (
-                      <span key={j} className={`tag ${cfg.className}`}>{cfg.label}</span>
-                    ) : null;
+                    return cfg ? <span key={j} className={`tag ${cfg.className}`}>{cfg.label}</span> : null;
                   })}
                 </div>
                 {course.highlights && course.highlights.length > 0 && (
                   <div className="highlights">
-                    {course.highlights.map((h, j) => (
-                      <span key={j} className="highlight">📍 {h}</span>
-                    ))}
+                    {course.highlights.map((h, j) => <span key={j} className="highlight">📍 {h}</span>)}
                   </div>
                 )}
               </div>
@@ -211,10 +223,9 @@ export default function Sidebar({
         </div>
 
         {!loadingSuggestions && suggestions.length === 0 && (
-          <p className="empty-hint">ボタンを押すと現在の地図エリアのおすすめコースを提案します</p>
+          <p className="empty-hint">条件を選んでAIにコースを提案してもらいましょう</p>
         )}
       </div>
-
     </aside>
   );
 }

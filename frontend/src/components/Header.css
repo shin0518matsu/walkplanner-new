@@ -7,12 +7,14 @@
   border-bottom: 0.5px solid rgba(0,0,0,0.1);
   flex-shrink: 0;
   z-index: 100;
+  gap: 12px;
 }
 
 .header-logo {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .logo-icon {
@@ -38,18 +40,69 @@
   color: #9ca3af;
 }
 
-.header-nav {
+.header-center {
+  flex: 1;
   display: flex;
-  gap: 16px;
+  justify-content: center;
 }
 
-.nav-link {
-  font-size: 13px;
+.mode-switcher {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   color: #6b7280;
-  text-decoration: none;
-  transition: color 0.15s;
+  font-weight: 500;
+  transition: all 0.15s;
 }
 
-.nav-link:hover {
+.mode-btn.active {
+  background: #fff;
   color: #1D9E75;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.streak-badge {
+  background: #FFF3E0;
+  color: #E65100;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #FFB74D;
+}
+
+.coach-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #1D9E75;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.coach-btn:hover {
+  background: #0F6E56;
 }
