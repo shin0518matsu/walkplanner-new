@@ -7,8 +7,8 @@ export default function Header({ streak, activityMode, setActivityMode, onCoachO
       <div className="header-logo">
         <div className="logo-icon">{activityMode === 'running' ? '🏃' : '🚶'}</div>
         <div>
-          <h1>WalkPlanner</h1>
-          <p>ウォーキング・ランニングルートプランナー</p>
+          <h1>MovePlanner</h1>
+          <p>ランニング・ウォーキングルートプランナー</p>
         </div>
       </div>
       <div className="header-center">
