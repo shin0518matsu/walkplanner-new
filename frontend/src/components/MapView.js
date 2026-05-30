@@ -116,6 +116,11 @@ export default function MapView({ mode, onWaypointsChange, onMapCenterChange }) 
       if (polylineRef.current) { polylineRef.current.remove(); polylineRef.current = null; }
       onWaypointsChange([], 0);
     };
+    window.__walkplanner_setCenter = (center) => {
+  const map = mapInstanceRef.current;
+  if (!map) return;
+  map.setView(center, 14);
+};
     window.__walkplanner_addPoints = (points) => {
       const map = mapInstanceRef.current;
       if (!map) return;
