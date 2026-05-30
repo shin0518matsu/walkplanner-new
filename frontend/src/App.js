@@ -82,7 +82,7 @@ export default function App() {
     } else {
   setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);
   const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join('|');
-  const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=false`;
+  const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=false`;
   fetch(url).then(r => r.json()).then(data => {
     if (data.routes && data.routes[0]) {
       const meters = data.routes[0].distance;
