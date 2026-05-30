@@ -22,6 +22,19 @@ export default function App() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [routeAnalysis, setRouteAnalysis] = useState(null);
   const [mapCenter, setMapCenter] = useState([35.663, 138.568]);
+  useEffect(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMapCenter([pos.coords.latitude, pos.coords.longitude]);
+        if (window.__walkplanner_setCenter) {
+          window.__walkplanner_setCenter([pos.coords.latitude, pos.coords.longitude]);
+        }
+      },
+      () => {} // 拒否された場合は甲府のまま
+    );
+  }
+}, []);
   const [status, setStatus] = useState('地図をクリックしてルートを作成してください');
   const [conditions, setConditions] = useState([]);
   const [streak, setStreak] = useState(0);
