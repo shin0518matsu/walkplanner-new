@@ -70,3 +70,14 @@ export default function AICoach({ apiUrl, activityMode, streak, distance, activi
           <input
             type="text"
             value={input}
+onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+            placeholder="メッセージを入力..."
+            disabled={loading}
+          />
+          <button onClick={sendMessage} disabled={loading || !input.trim()}>送信</button>
+        </div>
+      </div>
+    </div>
+  );
+}
