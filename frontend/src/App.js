@@ -80,18 +80,21 @@ export default function App() {
     } else if (newWaypoints.length === 1) {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
-  setStatus(`${newDistance.toFixed(2)}km のルートが設定されています`);
-  const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join(';');
-  const url = `https://routing.openstreetmap.de/routed-foot/route/v1/driving/${coords}?overview=false`;
-  fetch(url).then(r => r.json()).then(data => {
-    if (data.routes && data.routes[0]) {
-      const meters = data.routes[0].distance;
-      setRoadDistance(meters / 1000);
-      setStatus(`道路距離: ${(meters / 1000).toFixed(2)}km`);
+      setStatus('道路距離を計算中...');
+      const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join(';');
+      fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/driving/${coords}?overview=false`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.routes && data.routes[0]) {
+            const km = data.routes[0].distance / 1000;
+            setRoadDistance(km);
+            setDistance(km);
+            setStatus(`道路距離: ${km.toFixed(2)}km`);
+          }
+        })
+        .catch(() => setStatus(`${newDistance.toFixed(2)}km`));
     }
-  }).catch(() => {});
-}
-  }, [recordActivity]);
+  }, []);
 
   const handleMapCenterChange = useCallback((center) => {
     setMapCenter(center);
