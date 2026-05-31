@@ -1,0 +1,32 @@
+.calendar {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #1D9E75;
+  color: white;
+}
+
+.cal-month { font-size: 14px; font-weight: 600; }
+
+.cal-nav {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 8px;
+  opacity: 0.8;
+}
+
+.cal-nav:hover { opacity: 1; }
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
