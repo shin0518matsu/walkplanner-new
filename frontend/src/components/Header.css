@@ -106,3 +106,17 @@
 .coach-btn:hover {
   background: #0F6E56;
 }
+.streak-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFB74D;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.streak-btn:hover { background: #FFE0B2; }
