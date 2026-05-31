@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'] }));
 app.use(express.json());
 
 const limiter = rateLimit({
