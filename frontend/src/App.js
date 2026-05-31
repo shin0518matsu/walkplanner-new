@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import AdBanner from './components/AdBanner';
 import AICoach from './components/AICoach';
+import GoalPanel from './components/GoalPanel';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
@@ -15,51 +16,53 @@ function getToday() {
 export default function App() {
   const [waypoints, setWaypoints] = useState([]);
   const [distance, setDistance] = useState(0);
-  const [roadDistance, setRoadDistance] = useState(null);
   const [mode, setMode] = useState('click');
-  const [activityMode, setActivityMode] = useState('walking'); // 'walking' | 'running'
+  const [activityMode, setActivityMode] = useState('walking');
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [routeAnalysis, setRouteAnalysis] = useState(null);
   const [mapCenter, setMapCenter] = useState([35.663, 138.568]);
-  useEffect(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setMapCenter([pos.coords.latitude, pos.coords.longitude]);
-        if (window.__walkplanner_setCenter) {
-          window.__walkplanner_setCenter([pos.coords.latitude, pos.coords.longitude]);
-        }
-      },
-      () => {} // 拒否された場合は甲府のまま
-    );
-  }
-}, []);
   const [status, setStatus] = useState('地図をクリックしてルートを作成してください');
   const [conditions, setConditions] = useState([]);
   const [streak, setStreak] = useState(0);
+  const [activities, setActivities] = useState({});
   const [showCoach, setShowCoach] = useState(false);
+  const [showGoal, setShowGoal] = useState(false);
 
-  // ストリーク読み込み
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('walkplanner_streak') || '{"count":0,"lastDate":""}');
-    const today = getToday();
-    if (saved.lastDate === today) {
-      setStreak(saved.count);
-    } else {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yStr = yesterday.toISOString().split('T')[0];
-      if (saved.lastDate === yStr) {
-        setStreak(saved.count);
-      } else if (saved.lastDate !== today) {
-        setStreak(0);
-      }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const center = [pos.coords.latitude, pos.coords.longitude];
+          setMapCenter(center);
+          if (window.__walkplanner_setCenter) window.__walkplanner_setCenter(center);
+        },
+        () => {}
+      );
     }
   }, []);
 
-  const recordActivity = useCallback(() => {
+  useEffect(() => {
+    const savedActivities = JSON.parse(localStorage.getItem('walkplanner_activities') || '{}');
+    setActivities(savedActivities);
+    const saved = JSON.parse(localStorage.getItem('walkplanner_streak') || '{"count":0,"lastDate":""}');
     const today = getToday();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toISOString().split('T')[0];
+    if (saved.lastDate === today || saved.lastDate === yStr) {
+      setStreak(saved.count);
+    } else {
+      setStreak(0);
+    }
+  }, []);
+
+  const recordActivity = useCallback((km) => {
+    const today = getToday();
+    const savedActivities = JSON.parse(localStorage.getItem('walkplanner_activities') || '{}');
+    savedActivities[today] = { distance: km, mode: 'walking' };
+    localStorage.setItem('walkplanner_activities', JSON.stringify(savedActivities));
+    setActivities({ ...savedActivities });
     const saved = JSON.parse(localStorage.getItem('walkplanner_streak') || '{"count":0,"lastDate":""}');
     if (saved.lastDate === today) return;
     const yesterday = new Date();
@@ -73,50 +76,19 @@ export default function App() {
   const handleWaypointsChange = useCallback((newWaypoints, newDistance) => {
     setWaypoints(newWaypoints);
     setDistance(newDistance);
-    setRoadDistance(null);
     if (newWaypoints.length === 0) {
       setStatus('地図をクリックしてルートを作成してください');
       setRouteAnalysis(null);
     } else if (newWaypoints.length === 1) {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
-      setStatus('道路距離を計算中...');
-      const coords = newWaypoints.map(w => `${w.lng},${w.lat}`).join(';');
-      fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/driving/${coords}?overview=false`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.routes && data.routes[0]) {
-            const km = data.routes[0].distance / 1000;
-            setRoadDistance(km);
-            setDistance(km);
-            setStatus(`道路距離: ${km.toFixed(2)}km`);
-          }
-        })
-        .catch(() => setStatus(`${newDistance.toFixed(2)}km`));
+      setStatus(`${newDistance.toFixed(2)}km`);
     }
   }, []);
 
   const handleMapCenterChange = useCallback((center) => {
     setMapCenter(center);
   }, []);
-
-  const fetchRoadDistance = useCallback(async () => {
-    if (waypoints.length < 2) return;
-    try {
-      const coords = waypoints.map(w => `${w.lng},${w.lat}`).join('|');
-      const url = `https://router.project-osrm.org/route/v1/foot/${coords}?overview=false`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.routes && data.routes[0]) {
-        const meters = data.routes[0].distance;
-        setRoadDistance(meters / 1000);
-        setStatus(`道路距離: ${(meters / 1000).toFixed(2)}km`);
-        recordActivity();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [waypoints, recordActivity]);
 
   const fetchSuggestions = useCallback(async () => {
     setLoadingSuggestions(true);
@@ -125,12 +97,7 @@ export default function App() {
       const res = await fetch(`${API_URL}/api/suggest-courses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          lat: mapCenter[0],
-          lng: mapCenter[1],
-          conditions,
-          activityMode,
-        }),
+        body: JSON.stringify({ lat: mapCenter[0], lng: mapCenter[1], conditions, activityMode }),
       });
       const data = await res.json();
       if (data.courses) setSuggestions(data.courses);
@@ -147,22 +114,18 @@ export default function App() {
       const res = await fetch(`${API_URL}/api/analyze-route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          distance: (roadDistance || distance).toFixed(2),
-          points: waypoints.length,
-          activityMode,
-        }),
+        body: JSON.stringify({ distance: distance.toFixed(2), points: waypoints.length, activityMode }),
       });
       const data = await res.json();
       setRouteAnalysis(data);
+      if (distance > 0.5) recordActivity(distance);
     } catch (e) {
       console.error(e);
     }
-  }, [distance, roadDistance, waypoints.length, activityMode]);
+  }, [distance, waypoints.length, activityMode, recordActivity]);
 
   const speed = activityMode === 'running' ? 10 : 4;
   const calPerKm = activityMode === 'running' ? 80 : 60;
-  const displayDist = roadDistance || distance;
 
   return (
     <div className="app">
@@ -171,6 +134,7 @@ export default function App() {
         activityMode={activityMode}
         setActivityMode={setActivityMode}
         onCoachOpen={() => setShowCoach(true)}
+        onGoalOpen={() => setShowGoal(true)}
       />
       <AdBanner slot="top" />
       <div className="main-layout">
@@ -178,8 +142,7 @@ export default function App() {
           mode={mode}
           setMode={setMode}
           waypoints={waypoints}
-          distance={displayDist}
-          roadDistance={roadDistance}
+          distance={distance}
           speed={speed}
           calPerKm={calPerKm}
           suggestions={suggestions}
@@ -190,8 +153,7 @@ export default function App() {
           activityMode={activityMode}
           onFetchSuggestions={fetchSuggestions}
           onFetchAnalysis={fetchRouteAnalysis}
-          onFetchRoadDistance={fetchRoadDistance}
-          onClear={() => { handleWaypointsChange([], 0); setRoadDistance(null); }}
+          onClear={() => handleWaypointsChange([], 0)}
           apiUrl={API_URL}
         />
         <div className="map-container">
@@ -212,8 +174,16 @@ export default function App() {
           apiUrl={API_URL}
           activityMode={activityMode}
           streak={streak}
-          distance={displayDist}
+          distance={distance}
+          activities={activities}
           onClose={() => setShowCoach(false)}
+        />
+      )}
+      {showGoal && (
+        <GoalPanel
+          streak={streak}
+          activities={activities}
+          onClose={() => setShowGoal(false)}
         />
       )}
     </div>
