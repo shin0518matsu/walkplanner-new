@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-export default function Header({ streak, activityMode, setActivityMode, onCoachOpen }) {
+export default function Header({ streak, activityMode, setActivityMode, onCoachOpen, onGoalOpen }) {
   return (
     <header className="header">
       <div className="header-logo">
@@ -13,22 +13,14 @@ export default function Header({ streak, activityMode, setActivityMode, onCoachO
       </div>
       <div className="header-center">
         <div className="mode-switcher">
-          <button
-            className={`mode-btn ${activityMode === 'walking' ? 'active' : ''}`}
-            onClick={() => setActivityMode('walking')}
-          >🚶 ウォーキング</button>
-          <button
-            className={`mode-btn ${activityMode === 'running' ? 'active' : ''}`}
-            onClick={() => setActivityMode('running')}
-          >🏃 ランニング</button>
+          <button className={`mode-btn ${activityMode === 'walking' ? 'active' : ''}`} onClick={() => setActivityMode('walking')}>🚶 ウォーキング</button>
+          <button className={`mode-btn ${activityMode === 'running' ? 'active' : ''}`} onClick={() => setActivityMode('running')}>🏃 ランニング</button>
         </div>
       </div>
       <div className="header-right">
-        {streak > 0 && (
-          <div className="streak-badge">
-            🔥 {streak}日連続
-          </div>
-        )}
+        <button className="streak-btn" onClick={onGoalOpen}>
+          🔥 {streak}日
+        </button>
         <button className="coach-btn" onClick={onCoachOpen}>
           🤖 AIコーチ
         </button>
