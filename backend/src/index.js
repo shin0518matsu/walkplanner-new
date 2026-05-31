@@ -43,7 +43,7 @@ app.post('/api/suggest-courses', async (req, res) => {
 
   try {
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-5',
       max_tokens: 1024,
       messages: [{
         role: 'user',
@@ -87,7 +87,7 @@ app.post('/api/analyze-route', async (req, res) => {
 
   try {
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-5',
       max_tokens: 512,
       messages: [{
         role: 'user',
@@ -126,7 +126,7 @@ app.post('/api/coach', async (req, res) => {
     ];
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-5',
       max_tokens: 512,
       system: systemPrompt,
       messages: msgs,
