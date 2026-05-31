@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './AICoach.css';
 
-export default function AICoach({ apiUrl, activityMode, streak, distance, onClose }) {
+export default function AICoach({ apiUrl, activityMode, streak, distance, activities, onClose }) {
+  const totalDays = Object.keys(activities || {}).length;
+  const totalDist = Object.values(activities || {}).reduce((sum, a) => sum + a.distance, 0);
+
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `こんにちは！AIコーチです🏃\n${streak > 0 ? `${streak}日連続で頑張っていますね！すばらしい！` : 'さあ、一緒に目標を達成しましょう！'}\n\n目標設定やアドバイスが必要なことがあれば何でも聞いてください！`
+      content: streak > 0
+        ? `こんにちは！AIコーチです🏃\n${streak}日連続で頑張っていますね！これまでに${totalDays}日活動して、合計${totalDist.toFixed(1)}km達成しています！\n\n目標設定やアドバイスがあれば何でも聞いてください！`
+        : 'こんにちは！AIコーチです🏃\nさあ、一緒に目標を達成しましょう！\n\n何でも聞いてください！'
     }
   ]);
   const [input, setInput] = useState('');
@@ -22,14 +27,13 @@ export default function AICoach({ apiUrl, activityMode, streak, distance, onClos
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
-
     try {
       const res = await fetch(`${apiUrl}/api/coach`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: input,
-          context: { activityMode, streak, distance },
+          context: { activityMode, streak, distance, totalDays, totalDistance: totalDist.toFixed(1) },
           history: messages,
         }),
       });
@@ -46,10 +50,7 @@ export default function AICoach({ apiUrl, activityMode, streak, distance, onClos
     <div className="coach-overlay">
       <div className="coach-panel">
         <div className="coach-header">
-          <div className="coach-title">
-            <span>🤖</span>
-            <span>AIコーチ</span>
-          </div>
+          <div className="coach-title"><span>🤖</span><span>AIコーチ</span></div>
           <button className="coach-close" onClick={onClose}>✕</button>
         </div>
         <div className="coach-messages">
@@ -60,9 +61,7 @@ export default function AICoach({ apiUrl, activityMode, streak, distance, onClos
           ))}
           {loading && (
             <div className="coach-msg coach-msg--assistant">
-              <div className="coach-bubble coach-typing">
-                <span /><span /><span />
-              </div>
+              <div className="coach-bubble coach-typing"><span /><span /><span /></div>
             </div>
           )}
           <div ref={bottomRef} />
@@ -71,14 +70,3 @@ export default function AICoach({ apiUrl, activityMode, streak, distance, onClos
           <input
             type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            placeholder="メッセージを入力..."
-            disabled={loading}
-          />
-          <button onClick={sendMessage} disabled={loading || !input.trim()}>送信</button>
-        </div>
-      </div>
-    </div>
-  );
-}
