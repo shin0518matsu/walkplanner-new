@@ -128,7 +128,7 @@ export default function Sidebar({
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-label">{roadDistance ? '道路距離' : '距離'}</div>
-            <div className="stat-value">{distance.toFixed(2)}</div>
+            <div className="stat-value">{(roadDistance || distance).toFixed(2)}</div>
             <div className="stat-unit">km</div>
           </div>
           <div className="stat-card">
