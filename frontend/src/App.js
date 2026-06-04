@@ -83,8 +83,21 @@ export default function App() {
     } else if (newWaypoints.length === 1) {
       setStatus('出発地を設定しました。次のポイントを追加してください');
     } else {
-      setStatus(`${newDistance.toFixed(2)}km`);
-    }
+  setStatus(`${newDistance.toFixed(2)}km`);
+  fetch(`${API_URL}/api/route-distance`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ waypoints: newWaypoints.map(w => [w.lat, w.lng]) }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.distance) {
+        setDistance(data.distance);
+        setStatus(`道路距離: ${data.distance.toFixed(2)}km`);
+      }
+    })
+    .catch(() => {});
+}
   }, []);
 
   const handleMapCenterChange = useCallback((center) => {
