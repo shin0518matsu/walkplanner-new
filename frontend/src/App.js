@@ -28,6 +28,7 @@ export default function App() {
   const [activities, setActivities] = useState({});
   const [showCoach, setShowCoach] = useState(false);
   const [showGoal, setShowGoal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -107,7 +108,20 @@ export default function App() {
       setLoadingSuggestions(false);
     }
   }, [mapCenter, conditions, activityMode]);
-
+const handleSuggestionSelect = useCallback(async (course) => {
+  if (!course.highlights || course.highlights.length === 0) return;
+  const geocoded = [];
+  for (const h of course.highlights) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(h + ' ' + (mapCenter[0].toFixed(2) + ',' + mapCenter[1].toFixed(2)))}&format=json&limit=1&accept-language=ja`);
+      const data = await res.json();
+      if (data[0]) geocoded.push([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+    } catch (e) {}
+  }
+  if (geocoded.length > 0 && window.__walkplanner_addPoints) {
+    window.__walkplanner_addPoints(geocoded);
+  }
+}, [mapCenter]);
   const fetchRouteAnalysis = useCallback(async () => {
     if (distance < 0.1) return;
     try {
