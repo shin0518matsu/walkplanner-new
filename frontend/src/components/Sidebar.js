@@ -193,7 +193,7 @@ export default function Sidebar({
           {suggestions.map((course, i) => {
             const diff = DIFFICULTY_CONFIG[course.difficulty] || DIFFICULTY_CONFIG.easy;
             return (
-              <div key={i} className="suggestion-card">
+              <div key={i} className="suggestion-card" onClick={() => onSuggestionSelect && onSuggestionSelect(course)}>
                 <div className="suggestion-header">
                   <span className="suggestion-title">{course.title}</span>
                   <span className="difficulty-badge" style={{ color: diff.color }}>{diff.label}</span>
