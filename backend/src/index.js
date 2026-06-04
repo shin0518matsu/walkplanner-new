@@ -149,4 +149,21 @@ app.post('/api/geocode', async (req, res) => {
     res.status(500).json([]);
   }
 });
+app.post('/api/route-distance', async (req, res) => {
+  const { waypoints } = req.body;
+  if (!waypoints || waypoints.length < 2) return res.status(400).json({ error: '2点以上必要です' });
+  try {
+    const points = waypoints.map(w => `point=${w[0]},${w[1]}`).join('&');
+    const url = `https://graphhopper.com/api/1/route?${points}&vehicle=foot&calc_points=false&key=${process.env.GRAPHHOPPER_API_KEY}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data.paths && data.paths[0]) {
+      res.json({ distance: data.paths[0].distance / 1000, time: data.paths[0].time });
+    } else {
+      res.status(500).json({ error: 'ルート取得失敗' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: 'エラーが発生しました' });
+  }
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
