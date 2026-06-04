@@ -113,7 +113,11 @@ const handleSuggestionSelect = useCallback(async (course) => {
   const geocoded = [];
   for (const h of course.highlights) {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(h + ' ' + (mapCenter[0].toFixed(2) + ',' + mapCenter[1].toFixed(2)))}&format=json&limit=1&accept-language=ja`);
+      const res = await fetch(`${API_URL}/api/geocode`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: h }),
+});
       const data = await res.json();
       if (data[0]) geocoded.push([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
     } catch (e) {}
