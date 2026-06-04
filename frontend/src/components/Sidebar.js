@@ -30,7 +30,7 @@ export default function Sidebar({
   mode, setMode, waypoints, distance, roadDistance, speed, calPerKm,
   suggestions, loadingSuggestions, routeAnalysis, conditions, setConditions,
   activityMode, onFetchSuggestions, onFetchAnalysis, onFetchRoadDistance,
-  onClear, apiUrl,
+  onClear, apiUrl,onSuggestionSelect,
 }) {
   const [startText, setStartText] = useState('');
   const [endText, setEndText] = useState('');
