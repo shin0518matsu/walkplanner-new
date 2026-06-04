@@ -138,5 +138,15 @@ app.post('/api/coach', async (req, res) => {
     res.status(500).json({ error: 'コーチからの返答に失敗しました' });
   }
 });
-
+app.post('/api/geocode', async (req, res) => {
+  const { query } = req.body;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&accept-language=ja`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'MovePlanner/1.0' } });
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json([]);
+  }
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
