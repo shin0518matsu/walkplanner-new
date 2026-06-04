@@ -166,6 +166,7 @@ const handleSuggestionSelect = useCallback(async (course) => {
           setConditions={setConditions}
           activityMode={activityMode}
           onFetchSuggestions={fetchSuggestions}
+onSuggestionSelect={handleSuggestionSelect}
           onFetchAnalysis={fetchRouteAnalysis}
           onClear={() => handleWaypointsChange([], 0)}
           apiUrl={API_URL}
