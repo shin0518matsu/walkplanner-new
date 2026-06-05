@@ -7,7 +7,7 @@ import AICoach from './components/AICoach';
 import GoalPanel from './components/GoalPanel';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL || 'https://walkplanner-api.onrender.com';
 
 function getToday() {
   return new Date().toISOString().split('T')[0];
