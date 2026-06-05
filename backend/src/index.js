@@ -10,7 +10,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'] }));
 app.use(express.json());
-
+app.set('trust proxy', 1);
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 30,
